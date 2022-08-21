@@ -15,7 +15,7 @@
                 "run",
                 "--inspect",
                 "--allow-env=PORT,LIMIT",
-                "--allow-net=:8080"
+                "--allow-net=:8080,storage.googleapis.com"
             ],
             "attachSimplePort": 9229
         },
@@ -29,7 +29,7 @@
             "runtimeArgs": [
                 "run",
                 "--allow-env=PORT,LIMIT",
-                "--allow-net=:8080"
+                "--allow-net=:8080,storage.googleapis.com"
             ],
             "attachSimplePort": 9229
         }
