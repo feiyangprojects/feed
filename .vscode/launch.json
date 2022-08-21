@@ -14,7 +14,7 @@
             "runtimeArgs": [
                 "run",
                 "--inspect",
-                "--allow-env=PORT",
+                "--allow-env=PORT,LIMIT",
                 "--allow-net=:8080"
             ],
             "attachSimplePort": 9229
@@ -28,7 +28,7 @@
             "runtimeExecutable": "/usr/bin/deno",
             "runtimeArgs": [
                 "run",
-                "--allow-env=PORT",
+                "--allow-env=PORT,LIMIT",
                 "--allow-net=:8080"
             ],
             "attachSimplePort": 9229
