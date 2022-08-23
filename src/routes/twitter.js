@@ -11,17 +11,22 @@ const INIT = {
   },
 };
 
+async function setupInit() {
+  INIT["method"] = "POST";
+  INIT["headers"]["x-guest-token"] = (await (await fetchX(
+    "https://api.twitter.com/1.1/guest/activate.json",
+    INIT,
+  )).json())["guest_token"];
+
+  delete INIT["method"];
+}
+
 async function user(ctx, next) {
   let response;
   if (ctx.params.user.match(USER_NAME_REGEX) !== null) {
-    INIT["method"] = "POST";
-    INIT["headers"]["x-guest-token"] = (await (await fetchX(
-      "https://api.twitter.com/1.1/guest/activate.json",
-      INIT,
-    )).json())["guest_token"];
-
-    delete INIT["method"];
     try {
+      await setupInit();
+
       response = await (await fetchX(
         `https://twitter.com/i/api/1.1/statuses/user_timeline.json?screen_name=${ctx.params.user}`,
         INIT,
