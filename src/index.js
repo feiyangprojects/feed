@@ -2,7 +2,10 @@ import { Application, Router } from "https://deno.land/x/oak@v11.0.0/mod.ts";
 
 import { PORT } from "./utils/consts.js";
 import { hub as apnewsHub } from "./routes/apnews.js";
-import {user as twitterUser, search as twitterSearch } from "./routes/twitter.js"
+import {
+  search as twitterSearch,
+  user as twitterUser,
+} from "./routes/twitter.js";
 
 const router = new Router();
 router.get("/", (ctx) => {
