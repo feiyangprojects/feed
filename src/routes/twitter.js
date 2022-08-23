@@ -19,6 +19,49 @@ async function setupInit() {
   delete INIT["method"];
 }
 
+async function search(ctx, next) {
+  const url = new URL(
+    "https://twitter.com/i/api/1.1/search/tweets.json",
+  );
+  url.searchParams.set("count", LIMIT);
+  // Type `popular` produces results with s**t quality
+  url.searchParams.set("result_type", "recent")
+  url.searchParams.set("q", ctx.params.query);
+
+  let response;
+  try {
+    await setupInit();
+
+    response = await (await fetchX(url, INIT)).json();
+  } catch (_) {
+    ctx.response.body = ERRORS["FAILED_UPSTREAM"];
+    ctx.response.status = 500;
+    return;
+  }
+
+  const feed = create(
+    `https://twitter.com/search?q=${ctx.params.query}`,
+    `Twitter - ${ctx.params.query}`
+  );
+
+  for (let i = 0; i < response['statuses'].length && i < LIMIT; i++) {
+    const title = response['statuses'][i]["text"].replace(/(?:\r\n|\n|\r)/gm, "");
+    add(
+      feed,
+      `https://twitter.com/i/status/${response['statuses'][i]["id_str"]}`,
+      title,
+      new Date(response['statuses'][i]["created_at"]).toISOString(),
+      response['statuses'][i]["user"]["text"],
+      response['statuses'][i]["text"],
+      title,
+    );
+  }
+
+  ctx.response.body = parse(feed);
+  ctx.response.headers.set("content-type", CONTENT_TYPES.ATOM);
+  return;
+}
+
 async function user(ctx, next) {
   const url = new URL(
     "https://twitter.com/i/api/1.1/statuses/user_timeline.json",
@@ -62,4 +105,4 @@ async function user(ctx, next) {
   return;
 }
 
-export { user };
+export { search, user };
