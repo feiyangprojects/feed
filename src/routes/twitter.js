@@ -1,6 +1,8 @@
 import { fetchX } from "../utils/network.js";
-import { add, create, parse } from "../utils/feed.js";
+import { Feed } from "../utils/feed.js";
 import { CONTENT_TYPES, ERRORS, LIMIT } from "../utils/consts.js";
+
+const REMOVE_NEWLINE_REGEX = /(?:\r\n|\n|\r)/gm;
 
 const INIT = {
   headers: {
@@ -25,7 +27,7 @@ async function search(ctx, next) {
   );
   url.searchParams.set("count", LIMIT);
   // Type `popular` produces results with s**t quality
-  url.searchParams.set("result_type", "recent")
+  url.searchParams.set("result_type", "recent");
   url.searchParams.set("q", ctx.params.query);
 
   let response;
@@ -39,25 +41,30 @@ async function search(ctx, next) {
     return;
   }
 
-  const feed = create(
-    `https://twitter.com/search?q=${ctx.params.query}`,
-    `Twitter - ${ctx.params.query}`
-  );
+  const feed = new Feed({
+    id: `https://twitter.com/search?q=${ctx.params.query}`,
+    link: ctx.request.url.href,
+    title: `Twitter - ${ctx.params.query}`,
+    icon: "https://twitter.com/favicon.ico",
+  });
 
-  for (let i = 0; i < response['statuses'].length && i < LIMIT; i++) {
-    const title = response['statuses'][i]["text"].replace(/(?:\r\n|\n|\r)/gm, "");
-    add(
-      feed,
-      `https://twitter.com/i/status/${response['statuses'][i]["id_str"]}`,
-      title,
-      new Date(response['statuses'][i]["created_at"]).toISOString(),
-      response['statuses'][i]["user"]["text"],
-      response['statuses'][i]["text"],
-      title,
+  for (let i = 0; i < response["statuses"].length && i < LIMIT; i++) {
+    const title = response["statuses"][i]["text"].replace(
+      REMOVE_NEWLINE_REGEX,
+      "",
     );
+
+    feed.add({
+      id: `https://twitter.com/i/status/${response["statuses"][i]["id_str"]}`,
+      title: title,
+      updated: new Date(response["statuses"][i]["created_at"]).toISOString(),
+      author: response["statuses"][i]["user"]["text"],
+      content: response["statuses"][i]["user"]["text"],
+      summary: title,
+    });
   }
 
-  ctx.response.body = parse(feed);
+  ctx.response.body = feed.build();
   ctx.response.headers.set("content-type", CONTENT_TYPES.ATOM);
   return;
 }
@@ -80,27 +87,28 @@ async function user(ctx, next) {
     return;
   }
 
-  const feed = create(
-    `https://twitter.com/i/user/${response[0]["user"]["id_str"]}`,
-    `Twitter - ${response[0]["user"]["name"]}`,
-    response[0]["user"]["name"],
-    response[0]["user"]["profile_image_url_https"],
-  );
+  const feed = new Feed({
+    id: `https://twitter.com/i/user/${response[0]["user"]["id_str"]}`,
+    link: ctx.request.url.href,
+    title: `Twitter - ${response[0]["user"]["name"]}`,
+    author: response[0]["user"]["name"],
+    icon: response[0]["user"]["profile_image_url_https"],
+  });
 
   for (let i = 0; i < response.length && i < LIMIT; i++) {
-    const title = response[i]["text"].replace(/(?:\r\n|\n|\r)/gm, "");
-    add(
-      feed,
-      `https://twitter.com/i/status/${response[i]["id_str"]}`,
-      title,
-      new Date(response[i]["created_at"]).toISOString(),
-      response[i]["user"]["text"],
-      response[i]["text"],
-      title,
-    );
+    const title = response[i]["text"].replace(REMOVE_NEWLINE_REGEX, "");
+
+    feed.add({
+      id: `https://twitter.com/i/status/${response[i]["id_str"]}`,
+      title: title,
+      updated: new Date(response[i]["created_at"]).toISOString(),
+      author: response[i]["user"]["text"],
+      content: response[i]["text"],
+      summary: title,
+    });
   }
 
-  ctx.response.body = parse(feed);
+  ctx.response.body = feed.build();
   ctx.response.headers.set("content-type", CONTENT_TYPES.ATOM);
   return;
 }

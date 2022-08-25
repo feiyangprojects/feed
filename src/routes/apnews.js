@@ -1,5 +1,5 @@
 import { fetchX } from "../utils/network.js";
-import { add, create, parse } from "../utils/feed.js";
+import { Feed } from "../utils/feed.js";
 import { CONTENT_TYPES, ERRORS, LIMIT } from "../utils/consts.js";
 
 const HUB_NAME_REGEX = /^[0-9a-z-]+$/;
@@ -17,12 +17,12 @@ async function hub(ctx, next) {
       return;
     }
 
-    const feed = create(
-      ctx.request.url.href,
-      `AP News - ${response["tagObjs"][0]["name"]}`,
-      "AP News",
-      "https://apnews.com/favicon.ico",
-    );
+    const feed = new Feed({
+      id: `https://apnews.com/hub/${ctx.params.hub}`,
+      link: ctx.request.url.href,
+      title: `AP News - ${response["tagObjs"][0]["name"]}`,
+      icon: "https://apnews.com/favicon.ico",
+    });
 
     let author;
     for (let i = 0; i < response["cards"].length && i < LIMIT; i++) {
@@ -33,22 +33,21 @@ async function hub(ctx, next) {
           author = "AP News";
         }
 
-        add(
-          feed,
-          `https://apnews.com/article/${
+        feed.add({
+          id: `https://apnews.com/article/${
             response["cards"][i]["contents"][0]["canonicalUrl"]
           }-${response["cards"][i]["contents"][0]["shortId"]}`,
-          response["cards"][i]["contents"][0]["headline"],
-          new Date(response["cards"][i]["contents"][0]["published"])
+          title: response["cards"][i]["contents"][0]["headline"],
+          updated: new Date(response["cards"][i]["contents"][0]["published"])
             .toISOString(),
-          author,
-          response["cards"][i]["contents"][0]["storyHTML"],
-          response["cards"][i]["contents"][0]["firstWords"],
-        );
+          author: author,
+          content: response["cards"][i]["contents"][0]["storyHTML"],
+          summary: response["cards"][i]["contents"][0]["firstWords"],
+        });
       }
     }
 
-    ctx.response.body = parse(feed);
+    ctx.response.body = feed.build();
     ctx.response.headers.set("content-type", CONTENT_TYPES.ATOM);
     return;
   } else {
