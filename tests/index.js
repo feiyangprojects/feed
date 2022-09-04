@@ -4,7 +4,7 @@ Deno.test("index", async () => {
   const response = await fetch("http://127.0.0.1:8080/");
 
   assertEquals(response.status, 200);
-  assertEquals(await response.text(), "Hello world!");
+  await response.body.cancel();
 });
 
 Deno.test("apnews hub", async () => {

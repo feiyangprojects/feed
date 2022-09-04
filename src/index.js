@@ -1,6 +1,7 @@
 import { Application, Router } from "oak";
 
 import { PORT } from "./utils/consts.js";
+import { index } from "./routes/index.js";
 import { hub as apnewsHub } from "./routes/apnews.js";
 import {
   search as twitterSearch,
@@ -8,9 +9,7 @@ import {
 } from "./routes/twitter.js";
 
 const router = new Router();
-router.get("/", (ctx) => {
-  ctx.response.body = "Hello world!";
-});
+router.get("/", index);
 router.get("/apnews/hub/:hub", apnewsHub);
 router.get("/twitter/search/:query", twitterSearch);
 router.get("/twitter/user/:user", twitterUser);

@@ -14,7 +14,7 @@
             "runtimeArgs": [
                 "run",
                 "--inspect",
-                "--allow-env=PORT,LIMIT",
+                "--allow-env=PORT,PROJECT_LINK,LIMIT",
                 "--allow-net=:8080,storage.googleapis.com,twitter.com,api.twitter.com"
             ],
             "attachSimplePort": 9229
@@ -28,7 +28,7 @@
             "runtimeExecutable": "/usr/bin/deno",
             "runtimeArgs": [
                 "run",
-                "--allow-env=PORT,LIMIT",
+                "--allow-env=PORT,PROJECT_LINK,LIMIT",
                 "--allow-net=:8080,storage.googleapis.com,twitter.com,api.twitter.com"
             ],
             "attachSimplePort": 9229
